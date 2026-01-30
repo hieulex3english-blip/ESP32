@@ -1,32 +1,35 @@
 #include <Arduino.h>
-#include <DHT.h>
+#include "DHT11.h"
 
-#define DHTPIN 4
-#define DHTTYPE DHT11
-
-DHT dht(DHTPIN, DHTTYPE);
+// Khởi tạo DHT11 sử dụng GPIO4
+DHT11 dht11(4);
 
 void setup() {
-  Serial.begin(115200);
+  // Khởi tạo Serial với baud rate 115200
+  Serial.begin(9600);
+  delay(2000);  // Chờ Serial stabilize
+  
+  Serial.println("\n\n=== DHT11 Sensor Reading ===");
+  Serial.println("Reading temperature and humidity from DHT11 on GPIO4");
+  Serial.println("Waiting 2 seconds for sensor to initialize...");
   delay(2000);
-
-  Serial.println("=== DHT11 Sensor Reading ===");
-  dht.begin();
 }
 
 void loop() {
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-
-  if (isnan(h) || isnan(t)) {
-    Serial.println("✗ Failed to read from DHT11");
-  } else {
+  // Đọc dữ liệu từ cảm biến
+  DHT11::Data data = dht11.read();
+  
+  // Kiểm tra xem dữ liệu có hợp lệ không
+  if (data.valid) {
     Serial.print("✓ Temperature: ");
-    Serial.print(t);
+    Serial.print(data.temperature);
     Serial.print(" °C | Humidity: ");
-    Serial.print(h);
+    Serial.print(data.humidity);
     Serial.println(" %");
+  } else {
+    Serial.println("✗ Failed to read data from DHT11 - Check wiring and pull-up resistor");
   }
-
+  
+  // Đọc lại sau 3 giây (DHT11 cần ít nhất 2 giây giữa các lần đọc)
   delay(3000);
 }
